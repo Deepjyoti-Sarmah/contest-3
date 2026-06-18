@@ -1,19 +1,20 @@
+import "dotenv/config";
 import { FunctionCallingConfigMode, GoogleGenAI } from "@google/genai";
 import { toolDefinitions } from "./tools.js";
-
-const apiKey = process.env.GEMINI_API_KEY;
-const modelName = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
 
 type GeminiContents = string | Array<Record<string, unknown>>;
 
 export async function callGemini(contents: GeminiContents) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  const modelName = process.env.GEMINI_MODEL ?? "gemini-2.5-flash";
+
   if (!apiKey) {
     throw new Error("GEMINI_API_KEY is not configured");
   }
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const result =  ai.models.generateContent({
+  const result = ai.models.generateContent({
     model: modelName,
     contents,
     config: {
@@ -32,10 +33,11 @@ export async function callGemini(contents: GeminiContents) {
   });
 
   console.log(result)
+  return result
 }
 
 export async function generateWithGemini(prompt: string): Promise<string> {
-  if (!apiKey) {
+  if (!process.env.GEMINI_API_KEY) {
     return "Mock mode: GEMINI_API_KEY is not configured, so no files were changed.";
   }
 

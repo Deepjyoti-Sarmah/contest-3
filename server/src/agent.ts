@@ -20,7 +20,10 @@ export async function runAgent(prompt: string): Promise<string> {
 
   for (let i = 0; i < 5; i++) {
     const response = await callGemini(contents);
+
     const functionCalls = response.functionCalls ?? [];
+
+    console.log(response.functionCalls)
 
     if (functionCalls.length === 0) {
       return response.text ?? "";

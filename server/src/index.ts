@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import { listProjectFiles } from "./projectFiles.js";
 import type { Message, ProjectSnapshot } from "./types.js";
+import { runAgent } from "./agent.js";
 
 const app = express();
 const port = Number(process.env.PORT ?? 8787);
@@ -50,18 +51,66 @@ app.post("/api/messages", async (request, response) => {
   // writeProjectFile(path, content). After writes, return a fresh project snapshot.
 
   try {
-    const { message } = request.body
-    console.log(message)
-    console.log(typeof(message))
+    const { message } = request.body as { message?: string };
 
+    console.log("user:", message)
 
+    if (!message || typeof message !== "string") {
+      response.status(400).json({ error: "message is required" });
+      return;
+    }
 
-    // response.json(message);
+    const userMessage: Message = {
+      role: "user",
+      content: message,
+      createdAt: new Date().toISOString(),
+    };
+
+    messageHistory.push(userMessage);
+
+    const prompt = `
+      ${systemPrompt}
+
+      Conversation history:
+      ${messageHistory.map((msg) => `${msg.role}:
+        ${msg.content}`).join("\n")}
+
+      Current user request:
+      ${message}
+
+      Important:
+      - Only modify files inside project/
+      - Most edits should happen in src/App.tsx and
+      src/styles.css
+      - Use the bash tool to list, read, and write files
+      - After making changes, reply with a short summary
+      `;
+
+    const assistantText = await runAgent(prompt);
+
+    const assistantMessage: Message = {
+      role: "assistant",
+      content: assistantText,
+      createdAt: new Date().toISOString(),
+    };
+
+    messageHistory.push(assistantMessage);
+
+    const files = await listProjectFiles();
+
+    const projectSnapshot: ProjectSnapshot = {
+      summary: assistantText,
+      messageHistory,
+      files,
+      updatedAt: new Date().toISOString(),
+      previewUrl,
+    };
+
+    response.json(projectSnapshot);
   } catch (error) {
-    console.error("Failed to write project files:", error);
-    response.status(500).json({ error: "Failed to write project files" });
+    console.error("Failed to process message:", error);
+    response.status(500).json({ error: "Failed to process message" });
   }
-
 });
 
 app.listen(port, () => {
