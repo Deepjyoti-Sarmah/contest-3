@@ -64,7 +64,13 @@ export function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: prompt })
       });
+
+      console.log("response",response)
+
       const payload = await response.json();
+
+
+      console.log("payload",payload)
 
       if (!response.ok) {
         throw new Error(payload.error ?? "Request failed.");
