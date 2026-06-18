@@ -25,10 +25,10 @@ app.get("/api/project", async (_request, response) => {
   // make sure the above state is synced with fe, even some changes are applied
   // return ProjectSnapshot type here
 
-  // try {
+  try {
     const files = await listProjectFiles();
 
-    console.log(files)
+    // console.log(files)
     const projectSnapshot: ProjectSnapshot = {
       summary: `React project snapshot with ${files.length} files.`,
       messageHistory,
@@ -37,28 +37,31 @@ app.get("/api/project", async (_request, response) => {
       previewUrl,
     };
 
-    console.log(projectSnapshot)
+    // console.log(projectSnapshot)
     response.json(projectSnapshot);
-  // } catch (error) {
-  //   console.error("Failed to load project snapshot:", error);
-  //   response.status(500).json({ error: "Failed to load project snapshot" });
-  // }
+  } catch (error) {
+    console.error("Failed to load project snapshot:", error);
+    response.status(500).json({ error: "Failed to load project snapshot" });
+  }
 });
 
 app.post("/api/messages", async (request, response) => {
   // read user message here and make changes to files present in projects folder in root dir
   // writeProjectFile(path, content). After writes, return a fresh project snapshot.
-  //
-  try {
-    const message = request.body
-    console.log(message)
 
+  try {
+    const { message } = request.body
+    console.log(message)
+    console.log(typeof(message))
+
+
+
+    // response.json(message);
   } catch (error) {
     console.error("Failed to write project files:", error);
     response.status(500).json({ error: "Failed to write project files" });
   }
 
-  }
 });
 
 app.listen(port, () => {
