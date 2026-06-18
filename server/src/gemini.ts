@@ -20,13 +20,13 @@ export async function callGemini(contents: GeminiContents) {
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const result = ai.models.generateContent({
+  const result = await ai.models.generateContent({
     model: modelName,
     contents,
     config: {
       toolConfig: {
         functionCallingConfig: {
-          mode: FunctionCallingConfigMode.AUTO,
+          mode: FunctionCallingConfigMode.ANY,
           allowedFunctionNames: ["bash"],
         },
       },
@@ -38,8 +38,8 @@ export async function callGemini(contents: GeminiContents) {
     },
   });
 
-  console.log(result)
-  return result
+  console.log(result.functionCalls);
+  return result;
 }
 
 export async function generateWithGemini(prompt: string): Promise<string> {
